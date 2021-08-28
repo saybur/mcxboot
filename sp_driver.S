@@ -66,7 +66,7 @@
 ;* THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ;******************************************************************************
 
-#include <avr\io.h>
+#include <avr/io.h>
 
 /* Define the size of the flash page if not defined in the header files. */
 #ifndef FLASH_PAGE_SIZE
