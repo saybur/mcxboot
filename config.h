@@ -32,7 +32,7 @@
  * The filename that will be looked for on the memory card. This must be all-
  * uppercase and in a 8.3 file format.
  */
-#define HEX_FILENAME            "MCXBOOT.HEX"
+#define FLASH_FILENAME          "MCXBOOT.BIN"
 
 /*
  * Defines the pins used when communicating with the memory card.

@@ -18,7 +18,7 @@ CFLAGS ?= $(WARNINGS) $(CORE_OPTS) -mmcu=$(MCU) -DF_CPU=$(F_CPU)
 AVRDUDE_FLAGS := -p $(MCU) -c $(PROGRAMMER) -P usb
 
 MAIN = program
-SRCS = disk.c parser.c lib/pff/pff.c main.c
+SRCS = disk.c lib/pff/pff.c main.c
 OBJS = $(SRCS:.c=.o)
 
 .PHONY: all
