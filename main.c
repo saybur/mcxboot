@@ -24,14 +24,44 @@
 
 static FATFS fs;
 
+/*
+ * Executes a software reboot. Entry into the bootloader is controlled by reset
+ * status flags, so as long as those are appropriately cleared the bootloader
+ * will jump to the application section immediately after starting.
+ */
+static void sw_rst(void)
+{
+	while (1)
+	{
+		__asm__ __volatile__(
+			"ldi r24, %0"       "\n\t"
+			"out %1, r24"       "\n\t"
+			"ldi r24, %2"       "\n\t"
+			"sts %3, r24"       "\n\t"
+			:
+			: "M" (CCP_IOREG_gc), "i" (&CCP),
+			  "M" (RST_SWRST_bm), "i" (&(RST.CTRL))
+			: "r24"
+			);
+	};
+}
+
 int main(void)
 {
-	// the bootloader is only invoked on a power-on reset
+	// skip bootloader if not a power-on reset
 	uint8_t rst_stat = RST.STATUS;
 	if (! (rst_stat & RST_PORF_bm))
 	{
-		// TODO implement
+		// jump to the application (at address 0x0)
+		EIND = 0;
+		__asm__ __volatile__(
+			"clr ZL"            "\n\t"
+			"clr ZH"            "\n\t"
+			"ijmp"              "\n\t"
+			);
 	}
+	// clear RST_PORF_bm to prevent a bootloader boot-loop
+	RST.STATUS = RST_PORF_bm;
 
 	// initialize the memory card interface
 	MEM_PORT.OUTCLR = MEM_PIN_XCK;
@@ -43,16 +73,20 @@ int main(void)
 	uint8_t res = pf_mount(&fs);
 	if (res)
 	{
-		// TODO implement
+		// no SD card, allow the application to handle
+		sw_rst();
 	}
 	// open the programming file
 	res = pf_open(FLASH_FILENAME);
 	if (res)
 	{
-		// TODO implement
+		// not unexpected, the file will frequently be missing
+		sw_rst();
 	}
 
-	// TODO finish
-	while (1) { };
+
+
+	// TODO implement
+	while (1) { }
 	return 0;
 }
