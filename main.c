@@ -25,9 +25,10 @@
 static FATFS fs;
 
 /*
- * Executes a software reboot. Entry into the bootloader is controlled by reset
- * status flags, so as long as those are appropriately cleared the bootloader
- * will jump to the application section immediately after starting.
+ * Executes a software reboot.
+ * 
+ * The bootloader checks the reset status flags when starting, and will jump
+ * to the application section immediately if not a power-on / PDI reset.
  */
 static void sw_rst(void)
 {
@@ -49,10 +50,10 @@ static void sw_rst(void)
 int main(void)
 {
 	// skip bootloader if not a power-on reset
-	uint8_t rst_stat = RST.STATUS;
-	if (! (rst_stat & RST_PORF_bm))
+	uint8_t rst_stat = RST.STATUS & (RST_PORF_bm | RST_PDIRF_bm);
+	if (! (rst_stat))
 	{
-		// jump to the application (at address 0x0)
+		// jump to the application at address 0x0
 		EIND = 0;
 		__asm__ __volatile__(
 			"clr ZL"            "\n\t"
@@ -60,8 +61,10 @@ int main(void)
 			"ijmp"              "\n\t"
 			);
 	}
-	// clear RST_PORF_bm to prevent a bootloader boot-loop
-	RST.STATUS = RST_PORF_bm;
+	// clear flags to prevent a bootloader boot-loop
+	RST.STATUS = rst_stat;
+
+	// TODO: may want to verify lock bits are set correctly
 
 	// initialize the memory card interface
 	MEM_PORT.OUTCLR = MEM_PIN_XCK;
