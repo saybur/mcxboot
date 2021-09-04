@@ -274,7 +274,7 @@ SP_ReadLockBits:
 SP_EraseUserSignatureRow:
 	in	r19, RAMPZ                         ; Save RAMPZ, which is restored in SP_CommonSPM.
 	ldi	r20, NVM_CMD_ERASE_USER_SIG_ROW_gc ; Prepare NVM command in R20.
-	jmp 	SP_CommonSPM                       ; Jump to common SPM code.
+	rjmp SP_CommonSPM                       ; Jump to common SPM code.
 
 
 
@@ -294,7 +294,7 @@ SP_EraseUserSignatureRow:
 SP_WriteUserSignatureRow:
 	in	r19, RAMPZ                          ; Save RAMPZ, which is restored in SP_CommonSPM.
 	ldi	r20, NVM_CMD_WRITE_USER_SIG_ROW_gc  ; Prepare NVM command in R20.
-	jmp	SP_CommonSPM                        ; Jump to common SPM code.
+	rjmp SP_CommonSPM                       ; Jump to common SPM code.
 
 
 
@@ -314,7 +314,7 @@ SP_WriteUserSignatureRow:
 SP_EraseApplicationSection:
 	in	r19, RAMPZ                 ; Save RAMPZ, which is restored in SP_CommonSPM.
 	ldi	r20, NVM_CMD_ERASE_APP_gc  ; Prepare NVM command in R20.
-	jmp	SP_CommonSPM               ; Jump to common SPM code.
+	rjmp SP_CommonSPM              ; Jump to common SPM code.
 
 
 
@@ -335,9 +335,9 @@ SP_EraseApplicationSection:
 SP_EraseApplicationPage:
 	in	r19, RAMPZ                      ; Save RAMPZ, which is restored in SP_CommonSPM.
 	out	RAMPZ, r24                      ; Load RAMPZ with the MSB of the address.
-	movw    r24, r22                        ; Move low bytes for ZH:ZL to R25:R24
+	movw r24, r22                       ; Move low bytes for ZH:ZL to R25:R24
 	ldi	r20, NVM_CMD_ERASE_APP_PAGE_gc  ; Prepare NVM command in R20.
-	jmp	SP_CommonSPM                    ; Jump to common SPM code.
+	rjmp SP_CommonSPM                   ; Jump to common SPM code.
 
 
 
@@ -358,9 +358,9 @@ SP_EraseApplicationPage:
 
 SP_LoadFlashWord:
 	in	r19, RAMPZ                         ; Save RAMPZ, which is restored in SP_CommonSPM.
-	movw	r0, r22                            ; Prepare flash word in R1:R0.
+	movw r0, r22                           ; Prepare flash word in R1:R0.
 	ldi	r20, NVM_CMD_LOAD_FLASH_BUFFER_gc  ; Prepare NVM command in R20.
-	jmp	SP_CommonSPM                       ; Jump to common SPM code.
+	rjmp SP_CommonSPM                      ; Jump to common SPM code.
 
 
 
@@ -378,7 +378,7 @@ SP_LoadFlashWord:
 ;     Nothing.
 ; ---
 		
-.section .BOOT, "ax"
+;.section .BOOT, "ax"
 .global SP_LoadFlashPage
 
 SP_LoadFlashPage:
@@ -490,9 +490,9 @@ SP_ReadFlashPage_1:
 SP_WriteApplicationPage:
 	in	r19, RAMPZ                       ; Save RAMPZ, which is restored in SP_CommonSPM.
 	out	RAMPZ, r24                       ; Load RAMPZ with the MSB of the address.
-	movw	r24, r22                         ; Move low bytes of address to ZH:ZL from R23:R22
+	movw r24, r22                        ; Move low bytes of address to ZH:ZL from R23:R22
 	ldi	r20, NVM_CMD_WRITE_APP_PAGE_gc   ; Prepare NVM command in R20.
-	jmp	SP_CommonSPM                     ; Jump to common SPM code.
+	rjmp SP_CommonSPM                    ; Jump to common SPM code.
 
 
 
@@ -514,9 +514,9 @@ SP_WriteApplicationPage:
 SP_EraseWriteApplicationPage:
 	in	r19, RAMPZ                            ; Save RAMPZ, which is restored in SP_CommonSPM.
 	out	RAMPZ, r24                            ; Load RAMPZ with the MSB of the address.
-	movw	r24, r22                              ; Move low bytes of address to ZH:ZL from R23:R22
+	movw r24, r22                             ; Move low bytes of address to ZH:ZL from R23:R22
 	ldi	r20, NVM_CMD_ERASE_WRITE_APP_PAGE_gc  ; Prepare NVM command in R20.
-	jmp	SP_CommonSPM                          ; Jump to common SPM code.
+	rjmp SP_CommonSPM                         ; Jump to common SPM code.
 
 
 
@@ -536,7 +536,7 @@ SP_EraseWriteApplicationPage:
 SP_EraseFlashBuffer:
 	in	r19, RAMPZ                          ; Save RAMPZ, which is restored in SP_CommonSPM.
 	ldi	r20, NVM_CMD_ERASE_FLASH_BUFFER_gc  ; Prepare NVM command in R20.
-	jmp	SP_CommonSPM                        ; Jump to common SPM code.
+	rjmp SP_CommonSPM                       ; Jump to common SPM code.
 
 
 
@@ -557,9 +557,9 @@ SP_EraseFlashBuffer:
 SP_EraseBootPage:
 	in	r19, RAMPZ                         ; Save RAMPZ, which is restored in SP_CommonSPM.
 	out	RAMPZ, r24                         ; Load RAMPZ with the MSB of the address.
-	movw	r24, r22                           ; Move low bytes of address to ZH:ZL from R23:R22
+	movw r24, r22                          ; Move low bytes of address to ZH:ZL from R23:R22
 	ldi	r20, NVM_CMD_ERASE_BOOT_PAGE_gc    ; Prepare NVM command in R20.
-	jmp	SP_CommonSPM                       ; Jump to common SPM code.
+	rjmp SP_CommonSPM                      ; Jump to common SPM code.
 
 
 
@@ -580,9 +580,9 @@ SP_EraseBootPage:
 SP_WriteBootPage:
 	in	r19, RAMPZ                       ; Save RAMPZ, which is restored in SP_CommonSPM.
 	out	RAMPZ, r24                       ; Load RAMPZ with the MSB of the address.
-	movw	r24, r22                         ; Move low bytes of address to ZH:ZL from R23:R22
+	movw r24, r22                        ; Move low bytes of address to ZH:ZL from R23:R22
 	ldi	r20, NVM_CMD_WRITE_BOOT_PAGE_gc  ; Prepare NVM command in R20.
-	jmp	SP_CommonSPM                     ; Jump to common SPM code.
+	rjmp SP_CommonSPM                    ; Jump to common SPM code.
 
 
 
@@ -604,9 +604,9 @@ SP_WriteBootPage:
 SP_EraseWriteBootPage:
 	in	r19, RAMPZ                             ; Save RAMPZ, which is restored in SP_CommonSPM.
 	out	RAMPZ, r24                             ; Load RAMPZ with the MSB of the address.
-	movw	r24, r22                               ; Move low bytes of address to ZH:ZL from R23:R22
+	movw r24, r22                              ; Move low bytes of address to ZH:ZL from R23:R22
 	ldi	r20, NVM_CMD_ERASE_WRITE_BOOT_PAGE_gc  ; Prepare NVM command in R20.
-	jmp	SP_CommonSPM                           ; Jump to common SPM code.
+	rjmp SP_CommonSPM                          ; Jump to common SPM code.
 
 
 
@@ -773,7 +773,7 @@ SP_CommonLPM:
 ;     Nothing.
 ; ---
 
-.section .BOOT, "ax"
+;.section .BOOT, "ax"
 
 SP_CommonSPM:
 	movw	ZL, r24          ; Load R25:R24 into Z.
