@@ -63,7 +63,7 @@ static uint8_t card_type;
  * This does not use the USART buffers and is thus slow. Use alternatives
  * for sending bulk data.
  */
-static inline __attribute__((always_inline)) uint8_t mem_send(uint8_t data)
+static uint8_t mem_send(uint8_t data)
 {
 	while (! (MEM_USART.STATUS & USART_DREIF_bm));
 	MEM_USART.DATA = data;
