@@ -20,6 +20,7 @@
 #include <avr/io.h>
 #include <util/delay.h>
 #include "lib/pff/pff.h"
+#include "sp_driver.h"
 #include "config.h"
 
 static FATFS fs;
@@ -87,7 +88,25 @@ int main(void)
 		sw_rst();
 	}
 
+	// erase the application
+	SP_EraseApplicationSection();
+	SP_WaitForSPM();
 
+	uint8_t end = 0;
+	uint8_t buf[512];
+	uint16_t br;
+	do
+	{
+		// fetch a sector of data
+		res = pf_read(buf, 512, &br);
+		if (res)
+		{
+			// TODO handle error
+			break;
+		}
+		if (br != 512) end = 1;
+	}
+	while (! end);
 
 	// TODO implement
 	while (1) { }
