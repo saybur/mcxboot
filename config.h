@@ -35,6 +35,12 @@
 #define FLASH_FILENAME          "MCXBOOT.BIN"
 
 /*
+ * Defines the LED pin and port to report status information.
+ */
+#define LED_PORT                PORTE
+#define LED_PIN                 PIN1_bm
+
+/*
  * Defines the pins used when communicating with the memory card.
  */
 #define MEM_USART               USARTF0

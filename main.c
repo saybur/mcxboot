@@ -23,6 +23,15 @@
 #include "sp_driver.h"
 #include "config.h"
 
+#ifndef FLASH_PAGE_SIZE
+	#error "FLASH_PAGE_SIZE must be defined"
+#elif (512 % FLASH_PAGE_SIZE != 0)
+	#error "FLASH_PAGE_SIZE must be a multiple of 512"
+#endif
+
+#define led_on()  LED_PORT.DIR |= LED_PIN;
+#define led_off() LED_PORT.DIR &= ~LED_PIN;
+
 static FATFS fs;
 
 /*
@@ -92,19 +101,24 @@ int main(void)
 	SP_EraseApplicationSection();
 	SP_WaitForSPM();
 
+	// write the file to flash, starting at 0x0
+	uint32_t addr = 0;
 	uint8_t end = 0;
-	uint8_t buf[512];
+	uint8_t buf[FLASH_PAGE_SIZE];
 	uint16_t br;
 	do
 	{
-		// fetch a sector of data
-		res = pf_read(buf, 512, &br);
+		res = pf_read(buf, FLASH_PAGE_SIZE, &br);
 		if (res)
 		{
-			// TODO handle error
+			end = 2;
 			break;
 		}
-		if (br != 512) end = 1;
+		if (br != FLASH_PAGE_SIZE) end = 1;
+		SP_LoadFlashPage(buf);
+		SP_WriteApplicationPage(addr);
+		SP_WaitForSPM();
+		addr += FLASH_PAGE_SIZE;
 	}
 	while (! end);
 
