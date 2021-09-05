@@ -25,8 +25,7 @@
 
 // flash-code error conditions
 #define ERR_MEM_CARD_READ        2
-#define ERR_MEM_CARD_OPEN        3
-#define ERR_FLASH_VERIFY         4
+#define ERR_FLASH_VERIFY         3
 
 #ifndef FLASH_PAGE_SIZE
 	#error "FLASH_PAGE_SIZE must be defined"
@@ -108,6 +107,7 @@ int main(void)
 	uint32_t addr = 0;
 	uint8_t end = 0;
 	uint8_t buf[FLASH_PAGE_SIZE];
+	uint8_t flash[FLASH_PAGE_SIZE];
 	uint16_t br;
 	do
 	{
@@ -129,48 +129,18 @@ int main(void)
 		SP_LoadFlashPage(buf);
 		SP_WriteApplicationPage(addr);
 		SP_WaitForSPM();
+
+		// read back to verify
+		SP_ReadFlashPage(flash, addr);
+		for (uint16_t i = 0; i < br; i++)
+		{
+			if (buf[i] != flash[i]) end = ERR_FLASH_VERIFY;
+		}
+
+		// increment flash for next iteration
 		addr += FLASH_PAGE_SIZE;
 	}
 	while (! end);
-
-	// verify contents
-	if (end == 255)
-	{
-		addr = 0;
-		uint8_t flash[FLASH_PAGE_SIZE];
-
-		// re-open file
-		res = pf_open(FLASH_FILENAME);
-		if (res)
-		{
-			end = 4;
-		}
-
-		// read from card again, comparing as we go
-		while (end == 255)
-		{
-			led_on();
-
-			// read memory card contents
-			res = pf_read(buf, FLASH_PAGE_SIZE, &br);
-			if (res)
-			{
-				end = 5;
-				break;
-			}
-			if (br != FLASH_PAGE_SIZE) end = 254;
-
-			// read flash page
-			SP_ReadFlashPage(flash, addr);
-			addr += FLASH_PAGE_SIZE;
-
-			// compare
-			for (uint16_t i = 0; i < br; i++)
-			{
-				if (buf[i] != flash[i]) end = 3;
-			}
-		}
-	}
 
 	// programming complete
 	while (1)
