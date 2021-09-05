@@ -114,7 +114,7 @@ int main(void)
 			end = 2;
 			break;
 		}
-		if (br != FLASH_PAGE_SIZE) end = 1;
+		if (br != FLASH_PAGE_SIZE) end = 255;
 		SP_LoadFlashPage(buf);
 		SP_WriteApplicationPage(addr);
 		SP_WaitForSPM();
@@ -122,7 +122,17 @@ int main(void)
 	}
 	while (! end);
 
-	// TODO implement
-	while (1) { }
+	// programming complete
+	while (1)
+	{
+		for (uint8_t i = 0; i < end; i++)
+		{
+			led_on();
+			_delay_ms(500);
+			led_off();
+			_delay_ms(500);
+		}
+		_delay_ms(1000);
+	}
 	return 0;
 }
