@@ -23,6 +23,11 @@
 #include "sp_driver.h"
 #include "config.h"
 
+// flash-code error conditions
+#define ERR_MEM_CARD_READ        2
+#define ERR_MEM_CARD_OPEN        3
+#define ERR_FLASH_VERIFY         4
+
 #ifndef FLASH_PAGE_SIZE
 	#error "FLASH_PAGE_SIZE must be defined"
 #elif (512 % FLASH_PAGE_SIZE != 0)
@@ -74,8 +79,6 @@ int main(void)
 	// clear flags to prevent a bootloader boot-loop
 	RST.STATUS = rst_stat;
 
-	// TODO: may want to verify lock bits are set correctly
-
 	// initialize the memory card interface
 	MEM_PORT.OUTCLR = MEM_PIN_XCK;
 	MEM_PORT.OUTSET = MEM_PIN_TX | MEM_PIN_CS;
@@ -115,7 +118,7 @@ int main(void)
 		res = pf_read(buf, FLASH_PAGE_SIZE, &br);
 		if (res)
 		{
-			end = 2;
+			end = ERR_MEM_CARD_READ;
 			break;
 		}
 		// note end if encountered
@@ -129,6 +132,45 @@ int main(void)
 		addr += FLASH_PAGE_SIZE;
 	}
 	while (! end);
+
+	// verify contents
+	if (end == 255)
+	{
+		addr = 0;
+		uint8_t flash[FLASH_PAGE_SIZE];
+
+		// re-open file
+		res = pf_open(FLASH_FILENAME);
+		if (res)
+		{
+			end = 4;
+		}
+
+		// read from card again, comparing as we go
+		while (end == 255)
+		{
+			led_on();
+
+			// read memory card contents
+			res = pf_read(buf, FLASH_PAGE_SIZE, &br);
+			if (res)
+			{
+				end = 5;
+				break;
+			}
+			if (br != FLASH_PAGE_SIZE) end = 254;
+
+			// read flash page
+			SP_ReadFlashPage(flash, addr);
+			addr += FLASH_PAGE_SIZE;
+
+			// compare
+			for (uint16_t i = 0; i < br; i++)
+			{
+				if (buf[i] != flash[i]) end = 3;
+			}
+		}
+	}
 
 	// programming complete
 	while (1)

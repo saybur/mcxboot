@@ -221,6 +221,59 @@ SP_LoadFlashPage_1:
 
 
 ; ---
+; This routine reads an entire Flash page from address R23:R22:R21:R20 into the
+; SRAM buffer at address R25:R24.
+;
+;
+; Input:
+;     R23:R22:R21:R20 - Flash byte address.
+;     R25:R24 - 16-bit pointer to SRAM buffer.
+;
+; Returns:
+;     Nothing.
+; ---
+
+.section .text		
+.global SP_ReadFlashPage
+
+SP_ReadFlashPage:
+
+	in	r19, RAMPZ                   ; Save RAMPZ during assembly.
+	out	RAMPZ, r22                   ; Load RAMPZ with MSB of address
+	movw    ZL, r20                      ; Load Z with Flash address.
+
+	out	RAMPX, r1                    ; Load RAMPX with data pointer
+	movw	XL, r24                      ; Load X with data buffer address.
+
+	ldi	r20, NVM_CMD_NO_OPERATION_gc ; Prepare NVM command code in R20.
+	sts	NVM_CMD, r20                 ; Set NVM command to No Operation so that LPM reads Flash.
+
+#if FLASH_PAGE_SIZE > 512
+	ldi	r22, ((FLASH_PAGE_SIZE/2) >> 8) ; Load R22 with byte cont high if flash page is large.
+#endif	
+
+	ldi	r21, ((FLASH_PAGE_SIZE)&0xFF)   ; Load R21 with byte count.
+
+SP_ReadFlashPage_1:
+	elpm	r24, Z+                         ; Load Flash bytes into R18:r19
+	elpm	r25, Z+
+	st	X+, r24                         ; Write bytes to buffer.
+	st	X+, r25
+
+#if FLASH_PAGE_SIZE > 512
+	subi	r21, 1                          ; Decrement word count.
+	sbci	r22, 0
+#else
+	dec	r21                             ; Decrement word count.
+#endif	
+
+	brne	SP_ReadFlashPage_1              ; Repeat until byte count is zero.
+
+	out	RAMPZ, r19
+	ret
+
+
+; ---
 ; This routine writes the page buffer to the Flash page at address R25:R24:R23:R22
 ; in the application section. The address can point anywhere inside the page.
 ;
@@ -243,29 +296,6 @@ SP_WriteApplicationPage:
 
 
 ; ---
-; This routine erases first and then writes the page buffer to the
-; Flash page at address R25:R24:R23:R22 in the application section. The address
-; can point anywhere inside the page.
-;
-; Input:
-;     R25:R24:R23:R22 - Byte address into Flash page.
-;
-; Returns:
-;     Nothing.
-; ---
-
-.section .text
-.global SP_EraseWriteApplicationPage
-
-SP_EraseWriteApplicationPage:
-	in	r19, RAMPZ                            ; Save RAMPZ, which is restored in SP_CommonSPM.
-	out	RAMPZ, r24                            ; Load RAMPZ with the MSB of the address.
-	movw r24, r22                             ; Move low bytes of address to ZH:ZL from R23:R22
-	ldi	r20, NVM_CMD_ERASE_WRITE_APP_PAGE_gc  ; Prepare NVM command in R20.
-	rjmp SP_CommonSPM                         ; Jump to common SPM code.
-
-
-; ---
 ; This routine flushes the Flash page buffer.
 ;
 ; Input:
@@ -282,24 +312,6 @@ SP_EraseFlashBuffer:
 	in	r19, RAMPZ                          ; Save RAMPZ, which is restored in SP_CommonSPM.
 	ldi	r20, NVM_CMD_ERASE_FLASH_BUFFER_gc  ; Prepare NVM command in R20.
 	rjmp SP_CommonSPM                       ; Jump to common SPM code.
-
-
-; ---
-; This routine calculates a CRC for the application section.
-;
-; Input:
-;     Nothing.
-;
-; Returns:
-;     R25:R24:R23:R22 - 32-bit CRC result (actually only 24-bit used).
-; ---
-
-.section .text	
-.global SP_ApplicationCRC
-
-SP_ApplicationCRC:
-	ldi	r20, NVM_CMD_APP_CRC_gc    ; Prepare NVM command in R20.
-	rjmp	SP_CommonCMD               ; Jump to common NVM Action code.
 
 
 ; ---
