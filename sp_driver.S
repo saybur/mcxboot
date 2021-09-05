@@ -105,94 +105,6 @@
 #define CCP_IOREG_gc (0xD8<<0)	// IO Register Protection
 
 
-
-; ---
-; This routine reads a byte from flash given by the address in
-; R25:R24:R23:R22.
-;
-; Input:
-;     R25:R24:R23:R22.
-;
-; Returns:
-;     R24 - Read byte.
-; ---
-
-.section .text
-.global SP_ReadByte
-
-SP_ReadByte:
-	in	r19, RAMPZ      ; Save RAMPZ.
-	out	RAMPZ, r24      ; Load RAMPZ with the MSB of the address.
-	movw	ZL, r22         ; Move the low bytes to the Z pointer
-	elpm	r24, Z          ; Extended load byte from address pointed to by Z.
-	out	RAMPZ, r19      ; Restore RAMPZ register.
-	ret
-
-
-
-; ---
-; This routine reads a word from flash given by the address in
-; R25:R24:R23:R22.
-;
-; Input:
-;     R25:R24:R23:R22.
-;
-; Returns:
-;     R25:R24 - Read word.
-; ---
-
-.section .text
-.global SP_ReadWord
-
-SP_ReadWord:
-	in	r19, RAMPZ      ; Save RAMPZ.
-	out	RAMPZ, r24      ; Load RAMPZ with the MSB of the address.
-	movw	ZL, r22         ; Move the low bytes to the Z pointer
-	elpm	r24, Z+         ; Extended load byte from address pointed to by Z.
-	elpm	r25, Z          ; Extended load byte from address pointed to by Z.
-	out	RAMPZ, r19      ; Restore RAMPZ register.
-	ret
-
-
-
-; ---
-; This routine reads the calibration byte given by the index in R24.
-;
-; Input:
-;     R24 - Byte index.
-;
-; Returns:
-;     R24 - Calibration byte.
-; ---
-
-.section .text
-.global SP_ReadCalibrationByte	
-
-SP_ReadCalibrationByte:
-	ldi	r20, NVM_CMD_READ_CALIB_ROW_gc    ; Prepare NVM command in R20.
-	rjmp	SP_CommonLPM                      ; Jump to common LPM code.
-
-
-
-; ---
-; This routine reads the user signature byte given by the index in R25:R24.
-;
-; Input:
-;     R25:R24 - Byte index.
-;
-; Returns:
-;     R24 - Signature byte.
-; ---
-
-.section .text	
-.global SP_ReadUserSignatureByte
-
-SP_ReadUserSignatureByte:
-	ldi	r20, NVM_CMD_READ_USER_SIG_ROW_gc  ; Prepare NVM command in R20.
-	rjmp	SP_CommonLPM                       ; Jump to common LPM code.
-
-
-
 ; ---
 ; This routine reads the fuse byte given by the index in R24.
 ;
@@ -217,28 +129,6 @@ SP_ReadFuseByte:
 	ret
 
 
-
-; ---
-; This routine sets the lock bits from R24. Note that unlocking is only
-; possible by doing a full chip erase, not available from software.
-;
-; Input:
-;     R24 - Lock bits.
-;
-; Returns:
-;     Nothing.
-; ---
-
-.section .text	
-.global SP_WriteLockBits
-
-SP_WriteLockBits:
-	sts	NVM_DATA0, r24                  ; Load lock bits into NVM Data Register 0.
-	ldi	r20, NVM_CMD_WRITE_LOCK_BITS_gc ; Prepare NVM command in R20.
-	rjmp	SP_CommonCMD                    ; Jump to common NVM Action code.
-
-
-
 ; ---
 ; This routine reads the lock bits.
 ;
@@ -255,47 +145,6 @@ SP_WriteLockBits:
 SP_ReadLockBits:
 	lds	r24, NVM_LOCKBITS       ; Read IO-mapped lock bits.
 	ret
-
-
-
-; ---
-; This routine erases the user signature row.
-;
-; Input:
-;     Nothing.
-;
-; Returns:
-;     Nothing.
-; ---
-
-.section .text
-.global SP_EraseUserSignatureRow
-
-SP_EraseUserSignatureRow:
-	in	r19, RAMPZ                         ; Save RAMPZ, which is restored in SP_CommonSPM.
-	ldi	r20, NVM_CMD_ERASE_USER_SIG_ROW_gc ; Prepare NVM command in R20.
-	rjmp SP_CommonSPM                       ; Jump to common SPM code.
-
-
-
-; ---
-; This routine writes the flash buffer to the user signature row.
-;
-; Input:
-;     Nothing.
-;
-; Returns:
-;     Nothing.
-; ---
-
-.section .text
-.global SP_WriteUserSignatureRow
-
-SP_WriteUserSignatureRow:
-	in	r19, RAMPZ                          ; Save RAMPZ, which is restored in SP_CommonSPM.
-	ldi	r20, NVM_CMD_WRITE_USER_SIG_ROW_gc  ; Prepare NVM command in R20.
-	rjmp SP_CommonSPM                       ; Jump to common SPM code.
-
 
 
 ; ---
@@ -315,53 +164,6 @@ SP_EraseApplicationSection:
 	in	r19, RAMPZ                 ; Save RAMPZ, which is restored in SP_CommonSPM.
 	ldi	r20, NVM_CMD_ERASE_APP_gc  ; Prepare NVM command in R20.
 	rjmp SP_CommonSPM              ; Jump to common SPM code.
-
-
-
-; ---
-; This routine erases the page at address R25:R24:R23:R22 in the application
-; section. The address can point anywhere inside the page.
-;
-; Input:
-;     R25:R24:R23:R22 - Byte address into Flash page.
-;
-; Returns:
-;     Nothing.
-; ---
-
-.section .text	
-.global SP_EraseApplicationPage
-
-SP_EraseApplicationPage:
-	in	r19, RAMPZ                      ; Save RAMPZ, which is restored in SP_CommonSPM.
-	out	RAMPZ, r24                      ; Load RAMPZ with the MSB of the address.
-	movw r24, r22                       ; Move low bytes for ZH:ZL to R25:R24
-	ldi	r20, NVM_CMD_ERASE_APP_PAGE_gc  ; Prepare NVM command in R20.
-	rjmp SP_CommonSPM                   ; Jump to common SPM code.
-
-
-
-; ---
-; This routine writes the word from R23:R22 into the Flash page buffer at
-; address R25:R24.
-;
-; Input:
-;     R25:R24 - Byte address into Flash page.
-;     R23:R22 - Word to write.
-;
-; Returns:
-;     Nothing.
-; ---
-
-.section .text
-.global SP_LoadFlashWord
-
-SP_LoadFlashWord:
-	in	r19, RAMPZ                         ; Save RAMPZ, which is restored in SP_CommonSPM.
-	movw r0, r22                           ; Prepare flash word in R1:R0.
-	ldi	r20, NVM_CMD_LOAD_FLASH_BUFFER_gc  ; Prepare NVM command in R20.
-	rjmp SP_CommonSPM                      ; Jump to common SPM code.
-
 
 
 ; ---
@@ -418,61 +220,6 @@ SP_LoadFlashPage_1:
 	ret
 
 
-
-; ---
-; This routine reads an entire Flash page from address R23:R22:R21:R20 into the
-; SRAM buffer at address R25:R24.
-;
-;
-; Input:
-;     R23:R22:R21:R20 - Flash byte address.
-;     R25:R24 - 16-bit pointer to SRAM buffer.
-;
-; Returns:
-;     Nothing.
-; ---
-
-.section .text		
-.global SP_ReadFlashPage
-
-SP_ReadFlashPage:
-
-	in	r19, RAMPZ                   ; Save RAMPZ during assembly.
-	out	RAMPZ, r22                   ; Load RAMPZ with MSB of address
-	movw    ZL, r20                      ; Load Z with Flash address.
-
-	out	RAMPX, r1                    ; Load RAMPX with data pointer
-	movw	XL, r24                      ; Load X with data buffer address.
-
-	ldi	r20, NVM_CMD_NO_OPERATION_gc ; Prepare NVM command code in R20.
-	sts	NVM_CMD, r20                 ; Set NVM command to No Operation so that LPM reads Flash.
-
-#if FLASH_PAGE_SIZE > 512
-	ldi	r22, ((FLASH_PAGE_SIZE/2) >> 8) ; Load R22 with byte cont high if flash page is large.
-#endif	
-
-	ldi	r21, ((FLASH_PAGE_SIZE)&0xFF)   ; Load R21 with byte count.
-
-SP_ReadFlashPage_1:
-	elpm	r24, Z+                         ; Load Flash bytes into R18:r19
-	elpm	r25, Z+
-	st	X+, r24                         ; Write bytes to buffer.
-	st	X+, r25
-
-#if FLASH_PAGE_SIZE > 512
-	subi	r21, 1                          ; Decrement word count.
-	sbci	r22, 0
-#else
-	dec	r21                             ; Decrement word count.
-#endif	
-
-	brne	SP_ReadFlashPage_1              ; Repeat until byte count is zero.
-
-	out	RAMPZ, r19
-	ret
-
-
-
 ; ---
 ; This routine writes the page buffer to the Flash page at address R25:R24:R23:R22
 ; in the application section. The address can point anywhere inside the page.
@@ -493,7 +240,6 @@ SP_WriteApplicationPage:
 	movw r24, r22                        ; Move low bytes of address to ZH:ZL from R23:R22
 	ldi	r20, NVM_CMD_WRITE_APP_PAGE_gc   ; Prepare NVM command in R20.
 	rjmp SP_CommonSPM                    ; Jump to common SPM code.
-
 
 
 ; ---
@@ -519,7 +265,6 @@ SP_EraseWriteApplicationPage:
 	rjmp SP_CommonSPM                         ; Jump to common SPM code.
 
 
-
 ; ---
 ; This routine flushes the Flash page buffer.
 ;
@@ -539,77 +284,6 @@ SP_EraseFlashBuffer:
 	rjmp SP_CommonSPM                       ; Jump to common SPM code.
 
 
-
-; ---
-; This routine erases the page at address R25:R24:R23:R22 in the Boot section. The
-; address can point anywhere inside the page.
-;
-; Input:
-;     R25:R24:R23:R22 - Byte address into Flash page.
-;
-; Returns:
-;     Nothing.
-; ---
-
-.section .text		
-.global SP_EraseBootPage
-
-SP_EraseBootPage:
-	in	r19, RAMPZ                         ; Save RAMPZ, which is restored in SP_CommonSPM.
-	out	RAMPZ, r24                         ; Load RAMPZ with the MSB of the address.
-	movw r24, r22                          ; Move low bytes of address to ZH:ZL from R23:R22
-	ldi	r20, NVM_CMD_ERASE_BOOT_PAGE_gc    ; Prepare NVM command in R20.
-	rjmp SP_CommonSPM                      ; Jump to common SPM code.
-
-
-
-; ---
-; This routine writes the page buffer to the Flash page at address R25:R24:R23:R22
-; in the BOOT section. The address can point anywhere inside the page.
-;
-; Input:
-;     R25:R24:R23:R22 - Byte address into Flash page.
-;
-; Returns:
-;     Nothing.
-; ---
-
-.section .text		
-.global SP_WriteBootPage
-
-SP_WriteBootPage:
-	in	r19, RAMPZ                       ; Save RAMPZ, which is restored in SP_CommonSPM.
-	out	RAMPZ, r24                       ; Load RAMPZ with the MSB of the address.
-	movw r24, r22                        ; Move low bytes of address to ZH:ZL from R23:R22
-	ldi	r20, NVM_CMD_WRITE_BOOT_PAGE_gc  ; Prepare NVM command in R20.
-	rjmp SP_CommonSPM                    ; Jump to common SPM code.
-
-
-
-; ---
-; This routine erases first and then writes the page buffer to the
-; Flash page at address R25:R24:R23:R22 in the Boot section. The address
-; can point anywhere inside the page.
-;
-; Input:
-;     R25:R24:R23:R22 - Byte address into Flash page.
-;
-; Returns:
-;     Nothing.
-; ---
-
-.section .text		
-.global SP_EraseWriteBootPage
-
-SP_EraseWriteBootPage:
-	in	r19, RAMPZ                             ; Save RAMPZ, which is restored in SP_CommonSPM.
-	out	RAMPZ, r24                             ; Load RAMPZ with the MSB of the address.
-	movw r24, r22                              ; Move low bytes of address to ZH:ZL from R23:R22
-	ldi	r20, NVM_CMD_ERASE_WRITE_BOOT_PAGE_gc  ; Prepare NVM command in R20.
-	rjmp SP_CommonSPM                          ; Jump to common SPM code.
-
-
-
 ; ---
 ; This routine calculates a CRC for the application section.
 ;
@@ -626,48 +300,6 @@ SP_EraseWriteBootPage:
 SP_ApplicationCRC:
 	ldi	r20, NVM_CMD_APP_CRC_gc    ; Prepare NVM command in R20.
 	rjmp	SP_CommonCMD               ; Jump to common NVM Action code.
-
-
-
-; ---
-; This routine calculates a CRC for the Boot section.
-;
-; Input:
-;     Nothing.
-;
-; Returns:
-;     R25:R24:R23:R22 - 32-bit CRC result (actually only 24-bit used).
-; ---
-
-.section .text
-.global SP_BootCRC
-
-SP_BootCRC:
-	ldi	r20, NVM_CMD_BOOT_CRC_gc   ; Prepare NVM command in R20.
-	rjmp	SP_CommonCMD               ; Jump to common NVM Action code.
-
-
-
-; ---
-; This routine locks all further access to SPM operations until next reset.
-;
-; Input:
-;     Nothing.
-;
-; Returns:
-;     Nothing.
-; ---
-
-.section .text
-.global SP_LockSPM
-
-SP_LockSPM:
-	ldi	r18, CCP_IOREG_gc     ; Prepare Protect IO-register signature in R18.
-	sts	CCP, r18              ; Enable IO-register operation (this disables interrupts for 4 cycles).
-	ldi	r18, NVM_SPMLOCK_bm   ; Prepare bitmask for locking SPM into R18.
-	sts	NVM_CTRLB, r18        ; Load bitmask into NVM Control Register B, which locks SPM.
-	ret
-	
 
 
 ; ---
@@ -693,7 +325,6 @@ SP_WaitForSPM:
 	clr	r18
 	sts	NVM_CMD, r18        ; Clear up command register to NO_OPERATION.
 	ret
-
 
 
 ; ---
@@ -728,7 +359,6 @@ SP_CommonCMD:
 	ret
 
 
-
 ; ---
 ; This routine is called by several other routines, and contains common code
 ; for executing an LPM command, including the return statement itself.
@@ -751,7 +381,6 @@ SP_CommonLPM:
 	sts	NVM_CMD, r20        ; Load prepared command into NVM Command register.
 	lpm	r24,Z
 	ret
-
 
 
 ; ---
