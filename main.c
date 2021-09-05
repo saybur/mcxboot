@@ -108,13 +108,21 @@ int main(void)
 	uint16_t br;
 	do
 	{
+		// LED on during mem card reads, off during flash programming
+		led_on();
+
+		// read memory card contents
 		res = pf_read(buf, FLASH_PAGE_SIZE, &br);
 		if (res)
 		{
 			end = 2;
 			break;
 		}
+		// note end if encountered
 		if (br != FLASH_PAGE_SIZE) end = 255;
+
+		// write data to flash
+		led_off();
 		SP_LoadFlashPage(buf);
 		SP_WriteApplicationPage(addr);
 		SP_WaitForSPM();
