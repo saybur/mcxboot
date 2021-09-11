@@ -24,8 +24,9 @@
 #include "config.h"
 
 // flash-code error conditions
-#define ERR_MEM_CARD_READ        2
-#define ERR_FLASH_VERIFY         3
+#define FLASH_OK                 3
+#define ERR_FLASH_VERIFY         4
+#define ERR_MEM_CARD_READ        5
 
 #ifndef FLASH_PAGE_SIZE
 	#error "FLASH_PAGE_SIZE must be defined"
@@ -110,7 +111,7 @@ int main(void)
 	do
 	{
 		// cycle the LED periodically to show status
-		if (! (cnt++ % 32)) LED_PORT.DIRTGL = LED_PIN;
+		if (! (cnt++ % 16)) LED_PORT.DIRTGL = LED_PIN;
 
 		// read memory card contents
 		res = pf_read(buf, FLASH_PAGE_SIZE, &br);
@@ -120,7 +121,7 @@ int main(void)
 			break;
 		}
 		// note end if encountered
-		if (br != FLASH_PAGE_SIZE) end = 255;
+		if (br != FLASH_PAGE_SIZE) end = FLASH_OK;
 
 		// write data to flash
 		led_off();
@@ -146,11 +147,11 @@ int main(void)
 		for (uint8_t i = 0; i < end; i++)
 		{
 			led_on();
-			_delay_ms(500);
+			_delay_ms(750);
 			led_off();
-			_delay_ms(500);
+			_delay_ms(750);
 		}
-		_delay_ms(1000);
+		_delay_ms(1500);
 	}
 	return 0;
 }
