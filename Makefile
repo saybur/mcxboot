@@ -45,7 +45,7 @@ clean:
 
 .PHONY: flash
 flash: $(MAIN).bin
-	avrdude $(AVRDUDE_FLAGS) -U boot:w:$<
+	avrdude $(AVRDUDE_FLAGS) -e -U boot:w:$<
 
 .PHONY: reset
 reset:
