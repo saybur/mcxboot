@@ -3,8 +3,11 @@ mcxboot
 
 This is a memory card bootloader for AVR XMEGA devices, using
 [Petit FatFs](http://elm-chan.org/fsw/ff/00index_p.html) to support FAT32
-formatted filesystems. This bootloader compiles to less than 4K on parts
+formatted filesystems. The bootloader compiles to less than 4K on parts
 tested so far.
+
+This implementation requires a memory card connected to one of the XMEGA USART
+peripherals and a device LED to report status to the user.
 
 Installation
 ------------
@@ -22,8 +25,7 @@ Usage
 
 The bootloader starts each time the device resets. If the reset was caused by
 the device being powered-on *or* the PDI interface, the bootloader performs the
-following steps. Otherwise the application is invoked. No external buttons are
-needed in this process.
+following steps. Otherwise the application is invoked.
 
 These steps are performed by the bootloader:
 
