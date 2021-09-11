@@ -1,8 +1,19 @@
 # ============================================================================
 #  Edit these lines to match the microcontroller type and programmer
+#
+#  The BOOTSTART value must match the beginning of the bootloader section on
+#  your device, as a byte address. This can be found in the device datasheet.
+#  For reference:
+#
+#    atxmega64a3u:  0x10000
+#    atxmega128a3u: 0x20000
+#    atxmega192a3u: 0x30000
+#    atxmega256a3u: 0x40000
 # ============================================================================
 
 MCU := atxmega64a3u
+BOOTSTART := 0x10000
+
 PROGRAMMER := avrispv2
 AVRDUDE_FLAGS := -p $(MCU) -c $(PROGRAMMER) -P usb
 
@@ -12,12 +23,13 @@ AVRDUDE_FLAGS := -p $(MCU) -c $(PROGRAMMER) -P usb
 
 CC := avr-gcc
 F_CPU := 2000000
-WARNINGS := -Wall
+WARNINGS := -Wall -Wextra -pedantic -Waddr-space-convert
 CORE_OPTS := -Os -std=c99 -flto -mrelax
 INC := -I. -Ilib/pff
 VPATH := .:lib/pff
 CFLAGS ?= $(WARNINGS) $(CORE_OPTS) -mmcu=$(MCU) -DF_CPU=$(F_CPU) $(INC)
 ASFLAGS ?= -mmcu=$(MCU) -DF_CPU=$(F_CPU)
+LDFLAGS += -Wl,-Ttext=$(BOOTSTART)
 
 MAIN := program
 ASRCS := sp_driver.S
