@@ -105,47 +105,6 @@
 #define CCP_IOREG_gc (0xD8<<0)	// IO Register Protection
 
 
-; ---
-; This routine reads the fuse byte given by the index in R24.
-;
-; Input:
-;     R24 - Byte index.
-;
-; Returns:
-;     R24 - Fuse byte.
-; ---
-
-.section .text	
-.global SP_ReadFuseByte
-
-SP_ReadFuseByte:
-	sts	NVM_ADDR0, r24              ; Load fuse byte index into NVM Address Register 0.
-	clr	r24                         ; Prepare a zero.
-	sts	NVM_ADDR1, r24              ; Load zero into NVM Address Register 1.
-	sts	NVM_ADDR2, r24              ; Load zero into NVM Address Register 2.
-	ldi	r20, NVM_CMD_READ_FUSES_gc  ; Prepare NVM command in R20.
-	rcall	SP_CommonCMD                ; Jump to common NVM Action code.
-	movw	r24, r22                    ; Move low byte to 1 byte return address.
-	ret
-
-
-; ---
-; This routine reads the lock bits.
-;
-; Input:
-;     Nothing.
-;
-; Returns:
-;     R24 - Lock bits.
-; ---
-
-.section .text		
-.global SP_ReadLockBits
-
-SP_ReadLockBits:
-	lds	r24, NVM_LOCKBITS       ; Read IO-mapped lock bits.
-	ret
-
 
 ; ---
 ; This routine erases the entire application section.
@@ -296,25 +255,6 @@ SP_WriteApplicationPage:
 
 
 ; ---
-; This routine flushes the Flash page buffer.
-;
-; Input:
-;     Nothing.
-;
-; Returns:
-;     Nothing.
-; ---
-
-.section .text		
-.global SP_EraseFlashBuffer
-
-SP_EraseFlashBuffer:
-	in	r19, RAMPZ                          ; Save RAMPZ, which is restored in SP_CommonSPM.
-	ldi	r20, NVM_CMD_ERASE_FLASH_BUFFER_gc  ; Prepare NVM command in R20.
-	rjmp SP_CommonSPM                       ; Jump to common SPM code.
-
-
-; ---
 ; This routine wait for the SPM to finish and clears the command register.
 ;
 ; Note that this routine is blocking, and will halt any execution until the SPM
@@ -368,30 +308,6 @@ SP_CommonCMD:
 	lds	r23, NVM_DATA1      ; Load NVM Data Register 1 into R23.
 	lds	r24, NVM_DATA2      ; Load NVM Data Register 2 into R24.
 	clr	r25                 ; Clear R25 in order to return a clean 32-bit value.
-	ret
-
-
-; ---
-; This routine is called by several other routines, and contains common code
-; for executing an LPM command, including the return statement itself.
-;
-; Note that R24 is used for returning results, even if the
-; C-domain calling function expects a void.
-;
-; Input:
-;     R25:R24 - Low bytes of Z pointer.
-;     R20     - NVM Command code.
-;
-; Returns:
-;     R24     - Result from LPM operation.
-; ---
-
-.section .text		
-
-SP_CommonLPM:
-	movw	ZL, r24             ; Load index into Z.
-	sts	NVM_CMD, r20        ; Load prepared command into NVM Command register.
-	lpm	r24,Z
 	ret
 
 
