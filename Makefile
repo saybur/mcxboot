@@ -25,8 +25,8 @@ CC := avr-gcc
 F_CPU := 2000000
 WARNINGS := -Wall -Wextra -pedantic -Waddr-space-convert
 CORE_OPTS := -Os -std=c99 -flto -mrelax
-INC := -I. -Ilib/pff
-VPATH := .:lib/pff
+INC := -I. -Ilib/pff -Ilib/avr1316
+VPATH := .:lib/pff:lib/avr1316
 CFLAGS ?= $(WARNINGS) $(CORE_OPTS) -mmcu=$(MCU) -DF_CPU=$(F_CPU) $(INC)
 ASFLAGS ?= -mmcu=$(MCU) -DF_CPU=$(F_CPU)
 LDFLAGS += -Wl,-Ttext=$(BOOTSTART)
