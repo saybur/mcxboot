@@ -32,7 +32,7 @@
  * The filename that will be looked for on the memory card. This must be all-
  * uppercase and in a 8.3 file format.
  */
-#define FLASH_FILENAME          "MCXBOOT.BIN"
+#define FLASH_FILENAME          "FIRMWARE.BIN"
 
 /*
  * Defines the LED pin and port to report status information.
