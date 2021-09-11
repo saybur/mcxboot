@@ -39,6 +39,12 @@
  */
 #define LED_PORT                PORTE
 #define LED_PIN                 PIN1_bm
+/*
+ * Macros for turning the LED on or off. These assume the LED sinks current
+ * into the microcontroller; adjust appropriately if that is not the case.
+ */
+#define led_on()                LED_PORT.DIR |= LED_PIN;
+#define led_off()               LED_PORT.DIR &= ~LED_PIN;
 
 /*
  * Defines the pins used when communicating with the memory card.

@@ -33,9 +33,6 @@
 	#error "FLASH_PAGE_SIZE must be a multiple of 512"
 #endif
 
-#define led_on()  LED_PORT.DIR |= LED_PIN;
-#define led_off() LED_PORT.DIR &= ~LED_PIN;
-
 static FATFS fs;
 
 /*
@@ -104,6 +101,7 @@ int main(void)
 	SP_WaitForSPM();
 
 	// write the file to flash, starting at 0x0
+	uint8_t cnt = 0;
 	uint32_t addr = 0;
 	uint8_t end = 0;
 	uint8_t buf[FLASH_PAGE_SIZE];
@@ -111,8 +109,8 @@ int main(void)
 	uint16_t br;
 	do
 	{
-		// LED on during mem card reads, off during flash programming
-		led_on();
+		// cycle the LED periodically to show status
+		if (! (cnt++ % 32)) LED_PORT.DIRTGL = LED_PIN;
 
 		// read memory card contents
 		res = pf_read(buf, FLASH_PAGE_SIZE, &br);
