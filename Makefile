@@ -53,7 +53,7 @@ reset:
 
 .PHONY: fuses
 fuses:
-	avrdude $(AVRDUDE_FLAGS) -U fuse2:w:0xBF:m
+	avrdude $(AVRDUDE_FLAGS) -U fuse2:w:0xBF:m -U lock:w:0xBF:m
 
 .PHONY: dump
 dump: $(MAIN).elf
